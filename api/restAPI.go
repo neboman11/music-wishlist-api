@@ -21,10 +21,10 @@ type Have struct {
 }
 
 type Want struct {
-	Artist        string `json:"artist"`
-	Album         string `json:"album"`
-	Year          int    `json:"year"`
-	CoverArt_Link string `json:"cover_art_link"`
+	Artist        string `json:"Artist"`
+	Album         string `json:"Album"`
+	Year          int    `json:"Year"`
+	CoverArt_Link string `json:"CoverArt_Link"`
 }
 
 type MusicBrainzResponse struct {
