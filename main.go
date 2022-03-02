@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"os"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -21,11 +20,11 @@ const configFileName = "configuration"
 const configFileExtension = "toml"
 
 func main() {
-	log.Info().Msgf("Dapper version: %s-%s", CurrentVersionNumber, CurrentCommit)
+	log.Info().Msgf("API version: %s", CurrentVersionNumber)
 	readConfigFile()
 	log.Trace().Msg("Successfully loaded config")
 
-	portPtr := flag.Int("p", 10000, "Port to listen for requests on.")
+	portPtr := flag.Int("p", 3001, "Port to listen for requests on.")
 	flag.Parse()
 
 	// Verify the given port is a valid port number
@@ -49,28 +48,11 @@ func readConfigFile() {
 			log.Fatal().Msg(err.Error())
 		}
 	}
-
-	// Verify necessary config values are set
-	if videoDir := viper.GetString("Videos.TempVideoStorageFolder"); videoDir == "" {
-		videoDir, err := os.MkdirTemp(os.TempDir(), "dapper-*")
-		if err != nil {
-			log.Fatal().Msg(err.Error())
-		}
-		viper.Set("Videos.TempVideoStorageFolder", videoDir)
-	}
-
-	// If none was set, use the one on the path
-	if ffmpegDir := viper.GetString("ffmpeg.ffmpegDir"); ffmpegDir == "" {
-		viper.Set("ffmpeg.ffmpegDir", "ffmpeg")
-	}
-
-	if ffmpegDir := viper.GetString("ffmpeg.ffprobeDir"); ffmpegDir == "" {
-		viper.Set("ffmpeg.ffprobeDir", "ffprobe")
-	}
 }
 
 // Setup IPFS and start listening for requests
 func startDaemon(port int) {
+	open_database()
 	log.Info().Msg("Ready for requests")
-	api.HandleRequests(port)
+	api.HandleRequests(port, db)
 }

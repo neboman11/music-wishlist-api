@@ -19,3 +19,9 @@
 
 # Go workspace file
 go.work
+
+# Output binary
+music-wishlist-api
+
+# Environment files
+.env
