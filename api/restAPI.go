@@ -116,7 +116,7 @@ func delete(c echo.Context) error {
 // Private Functions
 
 func get_musicbrainz_ids(artist string, album string) ([]string, error) {
-	resp, err := http.Get("https://musicbrainz.org/ws/2/release/?query=" + url.QueryEscape(fmt.Sprintf("artist:%s AND release:%s", artist, album)) + "&fmt=json")
+	resp, err := http.Get("https://musicbrainz.org/ws/2/release/?query=" + url.QueryEscape(fmt.Sprintf("artistname:%s AND release:%s", artist, album)) + "&fmt=json")
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 
 func get_album_art_link(musicbrainz_ids []string) (string, error) {
 	for _, id := range musicbrainz_ids {
-		resp, err := http.Get(fmt.Sprintf("https://musicbrainz.org/ws/2/release/%s?fmt=json", id))
+		resp, err := http.Get(fmt.Sprintf("https://coverartarchive.org/release/%s?fmt=json", id))
 		if err != nil {
 			return "", err
 		}
