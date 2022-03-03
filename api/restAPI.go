@@ -83,13 +83,13 @@ func cover(c echo.Context) error {
 	musicbrainz_ids, err := get_musicbrainz_ids(artist, album)
 	if err != nil {
 		log.Errorf("Failed to get musicbrainz id: %s", err)
-		return c.String(http.StatusInternalServerError, "Failed to get MusicBrainz ID")
+		return c.String(http.StatusNotFound, "Failed to get MusicBrainz ID")
 	}
 
 	album_art_link, err := get_album_art_link(musicbrainz_ids)
 	if err != nil {
 		log.Errorf("Failed to get album art link: %s", err)
-		return c.String(http.StatusInternalServerError, "Failed to get album art link")
+		return c.String(http.StatusNotFound, "Failed to get album art link")
 	}
 
 	return c.JSON(http.StatusOK, CoverResponse{album_art_link})
