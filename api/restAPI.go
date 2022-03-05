@@ -122,9 +122,10 @@ func delete(c echo.Context) error {
 
 func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 	makingRequest.Lock()
-	defer makingRequest.Unlock()
 
 	resp, err := http.Get("https://musicbrainz.org/ws/2/release/?query=" + url.QueryEscape(fmt.Sprintf("artistname:%s AND release:%s", artist, album)) + "&fmt=json")
+	time.Sleep(1 * time.Second)
+	makingRequest.Unlock()
 	if err != nil {
 		return nil, err
 	}
@@ -155,8 +156,6 @@ func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 		ids[i] = release.Id
 	}
 
-	time.Sleep(1 * time.Second)
-
 	return ids, nil
 }
 
@@ -175,9 +174,10 @@ func get_album_art_link(musicbrainz_ids []string) (string, error) {
 
 func sub_get_album_art_link(musicbrainz_id string) (string, error) {
 	makingRequest.Lock()
-	defer makingRequest.Unlock()
 
 	resp, err := http.Get(fmt.Sprintf("https://coverartarchive.org/release/%s?fmt=json", musicbrainz_id))
+	time.Sleep(1 * time.Second)
+	makingRequest.Unlock()
 	if err != nil {
 		return "", err
 	}
@@ -202,8 +202,6 @@ func sub_get_album_art_link(musicbrainz_id string) (string, error) {
 	if err := json.Unmarshal(body, &coverArtResponse); err != nil {
 		return "", err
 	}
-
-	time.Sleep(1 * time.Second)
 
 	if len(coverArtResponse.Images) > 0 && coverArtResponse.Images[0].Front {
 		return coverArtResponse.Images[0].Image, nil
