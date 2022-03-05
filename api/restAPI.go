@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -124,6 +125,11 @@ func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusTooManyRequests {
+		time.Sleep(5 * time.Second)
+		return get_musicbrainz_ids(artist, album)
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -155,6 +161,11 @@ func get_album_art_link(musicbrainz_ids []string) (string, error) {
 		}
 
 		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusTooManyRequests {
+			time.Sleep(5 * time.Second)
+			return get_album_art_link(musicbrainz_ids)
+		}
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
