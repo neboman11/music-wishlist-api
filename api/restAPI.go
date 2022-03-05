@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -41,6 +42,8 @@ type CoverResponse struct {
 type DeleteAlbumRequest struct {
 	Albums []string `json:"albums"`
 }
+
+var makingRequest sync.Mutex
 
 // Starts listening for requests on the given port
 func HandleRequests(port int, database *gorm.DB) {
@@ -118,17 +121,15 @@ func delete(c echo.Context) error {
 // Private Functions
 
 func get_musicbrainz_ids(artist string, album string) ([]string, error) {
+	makingRequest.Lock()
+	defer makingRequest.Unlock()
+
 	resp, err := http.Get("https://musicbrainz.org/ws/2/release/?query=" + url.QueryEscape(fmt.Sprintf("artistname:%s AND release:%s", artist, album)) + "&fmt=json")
 	if err != nil {
 		return nil, err
 	}
 
 	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusTooManyRequests {
-		time.Sleep(5 * time.Second)
-		return get_musicbrainz_ids(artist, album)
-	}
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failed to get musicbrainz id: %s", resp.Status)
@@ -154,45 +155,59 @@ func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 		ids[i] = release.Id
 	}
 
+	time.Sleep(1 * time.Second)
+
 	return ids, nil
 }
 
 func get_album_art_link(musicbrainz_ids []string) (string, error) {
 	for _, id := range musicbrainz_ids {
-		resp, err := http.Get(fmt.Sprintf("https://coverartarchive.org/release/%s?fmt=json", id))
+		link, err := sub_get_album_art_link(id)
 		if err != nil {
 			return "", err
 		}
-
-		defer resp.Body.Close()
-
-		if resp.StatusCode == http.StatusTooManyRequests {
-			time.Sleep(5 * time.Second)
-			return get_album_art_link(musicbrainz_ids)
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("failed to get album art link: %s", resp.Status)
-		}
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return "", err
-		}
-
-		var coverArtResponse struct {
-			Images []struct {
-				Image string `json:"image"`
-				Front bool   `json:"front"`
-			} `json:"images"`
-		}
-		if err := json.Unmarshal(body, &coverArtResponse); err != nil {
-			return "", err
-		}
-
-		if len(coverArtResponse.Images) > 0 && coverArtResponse.Images[0].Front {
-			return coverArtResponse.Images[0].Image, nil
+		if len(link) > 0 {
+			return link, nil
 		}
 	}
 	return "", fmt.Errorf("no images found")
+}
+
+func sub_get_album_art_link(musicbrainz_id string) (string, error) {
+	makingRequest.Lock()
+	defer makingRequest.Unlock()
+
+	resp, err := http.Get(fmt.Sprintf("https://coverartarchive.org/release/%s?fmt=json", musicbrainz_id))
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get album art link: %s", resp.Status)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var coverArtResponse struct {
+		Images []struct {
+			Image string `json:"image"`
+			Front bool   `json:"front"`
+		} `json:"images"`
+	}
+	if err := json.Unmarshal(body, &coverArtResponse); err != nil {
+		return "", err
+	}
+
+	time.Sleep(1 * time.Second)
+
+	if len(coverArtResponse.Images) > 0 && coverArtResponse.Images[0].Front {
+		return coverArtResponse.Images[0].Image, nil
+	}
+
+	return "", nil
 }
