@@ -130,6 +130,10 @@ func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 		return get_musicbrainz_ids(artist, album)
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get musicbrainz id: %s", resp.Status)
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -165,6 +169,10 @@ func get_album_art_link(musicbrainz_ids []string) (string, error) {
 		if resp.StatusCode == http.StatusTooManyRequests {
 			time.Sleep(5 * time.Second)
 			return get_album_art_link(musicbrainz_ids)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("failed to get album art link: %s", resp.Status)
 		}
 
 		body, err := ioutil.ReadAll(resp.Body)
