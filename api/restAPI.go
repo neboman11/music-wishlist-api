@@ -124,7 +124,7 @@ func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 	makingRequest.Lock()
 
 	resp, err := http.Get("https://musicbrainz.org/ws/2/release/?query=" + url.QueryEscape(fmt.Sprintf("artistname:%s AND release:%s", artist, album)) + "&fmt=json")
-	time.Sleep(1 * time.Second)
+	time.Sleep(100 * time.Millisecond)
 	makingRequest.Unlock()
 	if err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func sub_get_album_art_link(musicbrainz_id string) (string, error) {
 	makingRequest.Lock()
 
 	resp, err := http.Get(fmt.Sprintf("https://coverartarchive.org/release/%s?fmt=json", musicbrainz_id))
-	time.Sleep(1 * time.Second)
+	time.Sleep(100 * time.Millisecond)
 	makingRequest.Unlock()
 	if err != nil {
 		return "", err
