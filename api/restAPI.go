@@ -48,6 +48,7 @@ func HandleRequests(port int, database *gorm.DB) {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
 
 	// GETs
 	e.GET("/wanted", wanted)
