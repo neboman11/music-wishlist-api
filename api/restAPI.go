@@ -163,13 +163,14 @@ func get_album_art_link(musicbrainz_ids []string) (string, error) {
 		var coverArtResponse struct {
 			Images []struct {
 				Image string `json:"image"`
+				Front bool   `json:"front"`
 			} `json:"images"`
 		}
 		if err := json.Unmarshal(body, &coverArtResponse); err != nil {
 			return "", err
 		}
 
-		if len(coverArtResponse.Images) > 0 {
+		if len(coverArtResponse.Images) > 0 && coverArtResponse.Images[0].Front {
 			return coverArtResponse.Images[0].Image, nil
 		}
 	}
