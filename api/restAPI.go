@@ -135,7 +135,7 @@ func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 	}
 
 	if len(mbResp.Releases) < 1 {
-		return nil, fmt.Errorf("no releases found for %s - %s", artist, album)
+		return nil, fmt.Errorf("no releases found for %s - %s\nbody: %s", artist, album, body)
 	}
 
 	ids := make([]string, len(mbResp.Releases))
