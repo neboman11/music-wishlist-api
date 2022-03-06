@@ -17,7 +17,7 @@ import (
 
 var db *gorm.DB
 
-type Have struct {
+type Album struct {
 	Artist string `json:"artist"`
 	Album  string `json:"album"`
 }
@@ -40,7 +40,7 @@ type CoverResponse struct {
 }
 
 type DeleteAlbumRequest struct {
-	Albums []string `json:"albums"`
+	Albums []Album `json:"albums"`
 }
 
 var makingRequest sync.Mutex
