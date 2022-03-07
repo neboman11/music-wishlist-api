@@ -108,12 +108,12 @@ func delete(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to read request body")
 	}
 
-	var albums DeleteAlbumRequest
+	var albums []Album
 	if err := json.Unmarshal(body, &albums); err != nil {
 		return c.String(http.StatusInternalServerError, "Failed to parse request body")
 	}
 
-	db.Delete(&Want{}, albums.Albums)
+	db.Delete(&Want{}, albums)
 
 	return c.String(http.StatusOK, "Albums deleted")
 }
