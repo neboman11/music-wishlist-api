@@ -113,7 +113,7 @@ func delete(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to parse request body")
 	}
 
-	db.Delete(&Want{}, "album in (?)", albums.Albums)
+	db.Delete(&Want{}, albums.Albums)
 
 	return c.String(http.StatusOK, "Albums deleted")
 }
