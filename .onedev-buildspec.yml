@@ -1,0 +1,24 @@
+version: 16
+jobs:
+- name: Build
+  steps:
+  - !CommandStep
+    name: Go Build
+    runInContainer: true
+    image: golang:1.18-alpine
+    interpreter: !DefaultInterpreter
+      commands:
+      - go build
+    useTTY: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  triggers:
+  - !BranchUpdateTrigger
+    branches: main
+  - !PullRequestUpdateTrigger
+    branches: main
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  cpuRequirement: 250
+  memoryRequirement: 256
+  timeout: 3600
