@@ -8,6 +8,7 @@ jobs:
     image: golang:1.18-alpine
     interpreter: !DefaultInterpreter
       commands:
+      - ls
       - go build
     useTTY: false
     condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
