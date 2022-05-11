@@ -4,7 +4,7 @@ jobs:
   steps:
   - !CommandStep
     name: Go Build
-    runInContainer: true
+    runInContainer: false
     image: golang:1.18-alpine
     interpreter: !DefaultInterpreter
       commands:
