@@ -2,15 +2,27 @@ version: 16
 jobs:
 - name: Build
   steps:
+  - !CheckoutStep
+    name: Checkout Repo
+    cloneCredential: !DefaultCredential {}
+    withLfs: false
+    withSubmodules: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
   - !CommandStep
     name: Go Build
-    runInContainer: false
+    runInContainer: true
     image: golang:1.18-alpine
     interpreter: !DefaultInterpreter
       commands:
+      - pwd
+      - ls /
       - ls -al
       - go build
     useTTY: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !PublishArtifactStep
+    name: Publish Binary
+    artifacts: music-wishlist-api
     condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
   triggers:
   - !BranchUpdateTrigger
