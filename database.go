@@ -5,17 +5,20 @@ import (
 	"log"
 	"os"
 
-	"gorm.io/driver/mysql"
+	"github.com/neboman11/music-wishlist-api/models"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var db *gorm.DB
 
 func open_database() {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", os.Getenv("SQL_USER"), os.Getenv("SQL_PASSWORD"), os.Getenv("SQL_HOST"), os.Getenv("SQL_DB"))
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432", os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
 	var err error
-	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %s", err)
 	}
+
+	db.AutoMigrate(&models.Want{})
 }

@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"sync"
@@ -12,36 +12,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"github.com/neboman11/music-wishlist-api/models"
 	"gorm.io/gorm"
 )
 
 var db *gorm.DB
-
-type Album struct {
-	Artist string `json:"artist"`
-	Album  string `json:"album"`
-}
-
-type Want struct {
-	Artist        string `json:"Artist"`
-	Album         string `json:"Album"`
-	Year          int    `json:"Year"`
-	CoverArt_Link string `json:"CoverArt_Link"`
-}
-
-type MusicBrainzResponse struct {
-	Releases []struct {
-		Id string `json:"id"`
-	} `json:"releases"`
-}
-
-type CoverResponse struct {
-	CoverArt_Link string `json:"cover"`
-}
-
-type DeleteAlbumRequest struct {
-	Albums []Album `json:"albums"`
-}
 
 var makingRequest sync.Mutex
 
@@ -69,7 +44,7 @@ func HandleRequests(port int, database *gorm.DB) {
 // GETs
 
 func wanted(c echo.Context) error {
-	var want []Want
+	var want []models.Want
 	db.Find(&want)
 	return c.JSON(http.StatusOK, want)
 }
@@ -97,23 +72,23 @@ func cover(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Failed to get album art link")
 	}
 
-	return c.JSON(http.StatusOK, CoverResponse{album_art_link})
+	return c.JSON(http.StatusOK, models.CoverResponse{CoverArt_Link: album_art_link})
 }
 
 // DELETEs
 
 func delete(c echo.Context) error {
-	body, err := ioutil.ReadAll(c.Request().Body)
+	body, err := io.ReadAll(c.Request().Body)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Failed to read request body")
 	}
 
-	var albums []Album
+	var albums []models.Album
 	if err := json.Unmarshal(body, &albums); err != nil {
 		return c.String(http.StatusInternalServerError, "Failed to parse request body")
 	}
 
-	db.Delete(&Want{}, albums)
+	db.Delete(&models.Want{}, albums)
 
 	return c.String(http.StatusOK, "Albums deleted")
 }
@@ -136,12 +111,12 @@ func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 		return nil, fmt.Errorf("failed to get musicbrainz id: %s", resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var mbResp MusicBrainzResponse
+	var mbResp models.MusicBrainzResponse
 	if err := json.Unmarshal(body, &mbResp); err != nil {
 		return nil, err
 	}
@@ -188,7 +163,7 @@ func sub_get_album_art_link(musicbrainz_id string) (string, error) {
 		return "", fmt.Errorf("failed to get album art link: %s", resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
