@@ -10,6 +10,7 @@ RUN go mod download
 COPY *.go ./
 COPY api ./api
 COPY docs ./docs
+COPY models ./models
 RUN go build
 
 EXPOSE 3001
