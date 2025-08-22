@@ -98,7 +98,11 @@ func delete(c echo.Context) error {
 func get_musicbrainz_ids(artist string, album string) ([]string, error) {
 	makingRequest.Lock()
 
-	resp, err := http.Get("https://musicbrainz.org/ws/2/release/?query=" + url.QueryEscape(fmt.Sprintf("artistname:%s AND release:%s", artist, album)) + "&fmt=json")
+	base := "https://musicbrainz.org/ws/2/release/"
+	params := url.Values{}
+	params.Add("query", fmt.Sprintf("artistname:%s AND release:%s", artist, album))
+	params.Add("fmt", "json")
+	resp, err := http.Get(base + "?" + params.Encode())
 	time.Sleep(100 * time.Millisecond)
 	makingRequest.Unlock()
 	if err != nil {
